@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <title>Template Ruang Objek WebAR</title>
+    
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+
+    <style>
+        /* Reset & Base Styles */
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Watermark Identitas (Pojok Kiri Atas) */
+        .watermark-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px rgba(255, 255, 255, 0.1) solid;
+            border-radius: 12px;
+            pointer-events: auto;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .watermark-logo {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+
+        .watermark-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .watermark-title {
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .watermark-subtitle {
+            color: #38bdf8;
+            font-size: 11px;
+            font-weight: 700;
+            margin: 2px 0 0 0;
+        }
+
+        /* Tombol UI Aksi (Pojok Kanan Bawah) */
+        .ui-action-container {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            z-index: 999;
+            display: none; /* Hidden secara default, muncul saat markerFound */
+        }
+
+        .btn-info {
+            background: #0ea5e9;
+            color: #ffffff;
+            border: none;
+            padding: 14px 28px;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            border-radius: 50px; /* Pill-shaped */
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(14, 165, 233, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn-info:hover {
+            background: #0284c7;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(14, 165, 233, 0.5);
+        }
+
+        .btn-info:active {
+            transform: translateY(1px);
+        }
+
+        /* Modal Box / Info Box (Center Screen) */
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid #38bdf8;
+            border-radius: 16px;
+            width: 85%;
+            max-width: 450px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-title {
+            color: #38bdf8;
+            font-size: 20px;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(56, 189, 248, 0.3);
+            padding-bottom: 8px;
+        }
+
+        .modal-desc {
+            color: #e2e8f0;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .btn-close {
+            background: #ef4444;
+            color: #ffffff;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .btn-close:hover {
+            background: #dc2626;
+        }
+
+        /* Area Interaksi Drag di Layar */
+        #interaction-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 50;
+            pointer-events: auto; /* Lapisan penangkap input mouse/touch */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="watermark-container">
+        <img src="logo-watermark.png" alt="Logo" class="watermark-logo" onerror="this.style.display='none'">
+        <div class="watermark-text">
+            <h1 class="watermark-title">TUGAS AKHIR</h1>
+            <span class="watermark-subtitle">JUAN MUQRIM / H0524336</span>
+        </div>
+    </div>
+
+    <div class="ui-action-container" id="ui-container">
+        <button class="btn-info" id="btn-baca">PENJELASAN</button>
+    </div>
+
+    <div class="modal-overlay" id="modal-info">
+        <div class="modal-box">
+            <h2 class="modal-title">Informasi Objek</h2>
+            <p class="modal-desc" id="modal-text">
+                GAMBAR INI MENUNJUKKAN KEBERAGAMAN AGAMA YANG ADA DI INDONESIA 
+            </p>
+            <button class="btn-close" id="btn-tutup">Tutup</button>
+        </div>
+    </div>
+
+    <div id="interaction-overlay"></div>
+
+    <a-scene 
+        embedded 
+        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+        vr-mode-ui="enabled: false"
+        renderer="antialias: true; alpha: true; precision: medium;">
+        
+        <a-assets>
+            <a-asset-item id="model-utama" src="KEBERAGAMAN AGAMA.glb"></a-asset-item>
+        </a-assets>
+
+        <a-marker preset="hiro" id="hiro-marker">
+            
+            <a-text 
+                value=KEBERAGAMAN AGAMA 
+                position="0 2.2 0" 
+                align="center" 
+                color="#38bdf8" 
+                font="asegment"
+                width="4"
+                scale="1.5 1.5 1.5">
+            </a-text>
+
+            <a-entity 
+                id="target-object"
+                gltf-model="#model-utama" 
+                position="0 0.9 0" 
+                scale="5 5 5"
+                rotation="0 0 0">
+            </a-entity>
+
+        </a-marker>
+
+        <a-entity camera></a-entity>
+    </a-scene>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements Referensi
+            const marker = document.getElementById('hiro-marker');
+            const uiContainer = document.getElementById('ui-container');
+            const modalInfo = document.getElementById('modal-info');
+            const btnBaca = document.getElementById('btn-baca');
+            const btnTutup = document.getElementById('btn-tutup');
+            const targetObject = document.getElementById('target-object');
+            const interactionOverlay = document.getElementById('interaction-overlay');
+
+            // 1. LOGIKA EVENT DETECTION MARKER
+            marker.addEventListener('markerFound', () => {
+                uiContainer.style.display = 'block';
+            });
+
+            marker.addEventListener('markerLost', () => {
+                uiContainer.style.display = 'none';
+                modalInfo.classList.remove('active'); // Otomatis tutup info jika marker lepas
+            });
+
+            // 2. LOGIKA UI TOGGLE MODAL
+            btnBaca.addEventListener('click', () => {
+                modalInfo.classList.add('active');
+            });
+
+            btnTutup.addEventListener('click', () => {
+                modalInfo.classList.remove('active');
+            });
+
+            // Close modal jika area overlay luar di-klik
+            modalInfo.addEventListener('click', (e) => {
+                if(e.target === modalInfo) {
+                    modalInfo.classList.remove('active');
+                }
+            });
+
+
+            // 3. LOGIKA INTERAKSI DRAG ROTASI (KUNCI SUMBU Y)
+            let isDragging = false;
+            let previousX = 0;
+            let currentRotationY = 0;
+            
+            // Konfigurasi sensitivitas rotasi
+            const sensitivity = 0.25; 
+
+            // Fungsi inisiasi gestur / drag
+            function startDrag(clientX) {
+                isDragging = true;
+                previousX = clientX;
+            }
+
+            // Fungsi kalkulasi kalkulasi rotasi delta
+            function updateDrag(clientX) {
+                if (!isDragging) return;
+                
+                let deltaX = clientX - previousX;
+                previousX = clientX;
+
+                // Tambahkan perubahan ke rotasi Y berjalan
+                currentRotationY += deltaX * sensitivity;
+
+                /* CRITICAL LOGIC LOCK: 
+                   Memaksa set rotasi sumbu X dan Z tetap mutlak di angka 0. 
+                   Hanya mengizinkan pembaruan data derajat posisi pada sumbu Y (Horizontal).
+                */
+                targetObject.setAttribute('rotation', {
+                    x: 0,
+                    y: currentRotationY,
+                    z: 0
+                });
+            }
+
+            function stopDrag() {
+                isDragging = false;
+            }
+
+            // --- Event Listener untuk Mouse (Desktop) ---
+            interactionOverlay.addEventListener('mousedown', (e) => {
+                startDrag(e.clientX);
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                updateDrag(e.clientX);
+            });
+
+            window.addEventListener('mouseup', () => {
+                stopDrag();
+            });
+
+            // --- Event Listener untuk Touch (Mobile/Tablet) ---
+            interactionOverlay.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    startDrag(e.touches[0].clientX);
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1) {
+                    updateDrag(e.touches[0].clientX);
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchend', () => {
+                stopDrag();
+            });
+        });
+    </script>
+</body>
+</html>

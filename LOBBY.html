@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lobi Eksplorasi Media Pembelajaran Web AR</title>
+    <style>
+        /* --- RESET & FONTS --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0d0d0d; /* Background Gelap */
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-x: hidden;
+        }
+
+        /* --- CONTAINER UTAMA --- */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* --- HEADER & PROFIL PENGEMBANG --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #ff1a1a;
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo-kampus {
+            height: 70px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .title-area h1 {
+            font-size: 1.8rem;
+            color: #ff3333;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(255, 51, 51, 0.5);
+            margin-bottom: 5px;
+        }
+
+        .title-area p {
+            font-size: 0.95rem;
+            color: #cccccc;
+        }
+
+        /* Tombol Profil Pengembang (Kanan Atas) */
+        .profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 26, 26, 0.1);
+            border: 1px solid #ff1a1a;
+            padding: 8px 15px;
+            border-radius: 50px;
+            text-decoration: none;
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+
+        .profile-btn:hover {
+            background: #ff1a1a;
+            box-shadow: 0 0 15px rgba(255, 26, 26, 0.6);
+        }
+
+        .profile-btn img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #fff;
+        }
+
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .profile-info .name {
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+
+        .profile-info .nim {
+            font-size: 0.75rem;
+            color: #ddd;
+        }
+
+        /* --- CSS GRID LAYOUT TOBOL MATERI --- */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4 Kolom di Layar Desktop */
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        /* Style Tombol Materi */
+        .menu-item {
+            grid-column: span 4; /* Sifat dasar Full Width di dalam grid sel jika dipanggil individu, namun diatur per item */
+            background: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            text-decoration: none;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Efek Hover Interaktif (Glowing Red) */
+        .menu-item:hover {
+            transform: translateY(-5px); /* Sedikit terangkat ke atas */
+            border-color: #ff3333;
+            color: #ff3333;
+            background: #260000;
+            box-shadow: 0 0 20px rgba(255, 51, 51, 0.6); /* Bayangan lembut & menyala */
+        }
+
+        /* Aturan span agar tombol terdistribusi rapi di 4 kolom desktop */
+        .span-desktop {
+            grid-column: span 2; /* Membuat tombol mengambil 2 kolom agar seimbang (2 baris x 2 kolom, dsb) */
+        }
+        
+        /* Jika ingin benar-benar 1 baris penuh per tombol secara vertikal, gunakan kelas ini */
+        .full-width-desktop {
+            grid-column: span 4;
+        }
+
+        /* --- TOMBOL QUIZ (BAWAH) --- */
+        .quiz-section {
+            width: 100%;
+            margin-top: auto;
+            padding-top: 20px;
+        }
+
+        .quiz-btn {
+            display: block;
+            width: 100%; /* Lebar Penuh */
+            background: #051a0e;
+            border: 2px solid #00e676; /* Warna Hijau Neon */
+            color: #00e676;
+            text-align: center;
+            padding: 18px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 230, 118, 0.1);
+        }
+
+        .quiz-btn:hover {
+            background: #00e676;
+            color: #0d0d0d;
+            box-shadow: 0 0 25px #00e676; /* Efek Glowing Hijau Neon */
+            transform: translateY(-3px);
+        }
+
+        /* --- MEDIA QUERY RESPONSIF (LAYAR HP / MAX-WIDTH: 600px) --- */
+        @media (max-width: 600px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 20px;
+            }
+
+            .brand-section {
+                width: 100%;
+            }
+
+            .logo-kampus {
+                height: 55px;
+            }
+
+            .title-area h1 {
+                font-size: 1.4rem;
+            }
+
+            .profile-btn {
+                position: relative;
+                align-self: flex-end; /* Tetap rapi di kanan bawah header jika di HP */
+            }
+
+            /* Otomatis menjadi 2 kolom di HP */
+            .menu-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+
+            /* Paksa semua tombol materi menjadi full-width (2 kolom penuh) saat di HP */
+            .menu-item, .span-desktop, .full-width-desktop {
+                grid-column: span 2;
+                font-size: 0.95rem;
+                padding: 15px 10px;
+            }
+
+            .quiz-btn {
+                font-size: 1.1rem;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div class="brand-section">
+                <img src="Unsulbar-Logo-1 (1).png" alt="Logo Kampus" class="logo-campus.png">
+                <div class="title-area">
+                    <h1>Keberagaman Suku, Agama, dan Budaya di Indonesia</h1>
+                    <p>Pilih menu di bawah ini untuk menampilkan Augmented Reality</p>
+                </div>
+            </div>
+
+            <a href="#" class="profile-btn">
+                <img src="JUANNNN.jpeg" alt="Foto Pengembang">
+                <div class="profile-info">
+                    <span class="name">JUAN MUQRIM</span> <span class="nim">NIM. H0524336</span>    </div>
+            </a>
+        </header>
+
+        <main class="menu-grid">
+            
+            <a href="Objek 1/index.html" class="menu-item full-width-desktop">
+                BAJU ADAT SUKU BUGIS 💥
+            </a>
+
+            <a href="objek 2/index.html" class="menu-item full-width-desktop">
+                BAJU ADAT SUKU PAPUA
+            </a>
+
+            <a href="objek 3/index.html" class="menu-item full-width-desktop">
+                BAJU ADAT SUKU JAWA
+            </a>
+
+            <a href="objek 4/index.html" class="menu-item full-width-desktop">
+                BAJU ADAT SUKU BETAWI
+            </a>
+
+            <a href="objek 5/index.html" class="menu-item full-width-desktop">
+                KEGIATAN GOTONG-ROYONG
+            </a>
+
+            <a href="objek 6/index.html" class="menu-item full-width-desktop">
+                KEBERAGAMAN AGAMA DI INDONESIA
+            </a>
+
+            </main>
+
+        <footer class="quiz-section">
+            <a href="QUIZ/QUIZ.html" class="quiz-btn">
+                MULAI QUIZ EVALUASI
+            </a>
+        </footer>
+    </div>
+
+</body>
+</html>

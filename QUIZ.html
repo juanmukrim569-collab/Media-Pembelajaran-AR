@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Interaktif: Keberagaman Suku, Agama, dan Budaya di Indonesia</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f0f7f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background-color: #e0e0e0;
+            border-radius: 3px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #2ec4b6;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .question-number {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option-btn {
+            background-color: #f8f9fa;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px 20px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .option-btn:hover:not([disabled]) {
+            background-color: #edf2f7;
+            border-color: #cbd5e0;
+        }
+
+        .option-btn[disabled] {
+            cursor: not-allowed;
+        }
+
+        .option-btn.correct {
+            background-color: #d4edda !important;
+            border-color: #28a745 !important;
+            color: #155724 !important;
+        }
+
+        .option-btn.wrong {
+            background-color: #f8d7da !important;
+            border-color: #dc3545 !important;
+            color: #721c24 !important;
+        }
+
+        .feedback-panel {
+            margin-top: 20px;
+            padding: 18px;
+            border-radius: 8px;
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .feedback-panel.correct-style {
+            background-color: #e8f5e9;
+            border-left: 5px solid #2e7d32;
+        }
+
+        .feedback-panel.wrong-style {
+            background-color: #ffebee;
+            border-left: 5px solid #c62828;
+        }
+
+        .feedback-title {
+            font-weight: bold;
+            font-size: 1.05rem;
+            margin-bottom: 6px;
+        }
+
+        .feedback-title.correct-text { color: #2e7d32; }
+        .feedback-title.wrong-text { color: #c62828; }
+
+        .feedback-text {
+            font-size: 0.95rem;
+            color: #455a64;
+            line-height: 1.45;
+        }
+
+        .action-container {
+            margin-top: 25px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .next-btn {
+            background-color: #2ec4b6;
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            display: none;
+            transition: background 0.2s;
+        }
+
+        .next-btn:hover {
+            background-color: #23a99d;
+        }
+
+        .result-screen {
+            text-align: center;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .result-title {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .score-display {
+            font-size: 4rem;
+            font-weight: 800;
+            color: #2ec4b6;
+            margin-bottom: 15px;
+        }
+
+        .result-summary {
+            font-size: 1.1rem;
+            color: #616161;
+            margin-bottom: 25px;
+        }
+
+        .restart-btn {
+            background-color: #ff9f1c;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .restart-btn:hover {
+            background-color: #f18f01;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="quiz-container">
+        <div id="progress-bar-container" class="progress-bar">
+            <div id="progress-fill" class="progress-fill"></div>
+        </div>
+
+        <div id="quiz-screen">
+            <div id="question-number" class="question-number"></div>
+            <div id="question-text" class="question-text">Memuat pertanyaan...</div>
+            
+            <div id="options-container" class="options-container"></div>
+
+            <div id="feedback-panel" class="feedback-panel">
+                <div id="feedback-title" class="feedback-title"></div>
+                <div id="feedback-text" class="feedback-text"></div>
+            </div>
+
+            <div class="action-container">
+                <button id="next-btn" class="next-btn" onclick="nextQuestion()"></button>
+            </div>
+        </div>
+
+        <div id="result-screen" class="result-screen">
+            <div class="result-title">Kuis Selesai! 🎉</div>
+            <div id="score-display" class="score-display">0</div>
+            <div id="result-summary" class="result-summary"></div>
+            <button class="restart-btn" onclick="restartQuiz()">Ulangi Kuis</button>
+        </div>
+    </div>
+
+    <audio id="audio-correct" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-500.wav" preload="auto"></audio>
+    <audio id="audio-wrong" src="https://assets.mixkit.co/active_storage/sfx/2873/2873-500.wav" preload="auto"></audio>
+
+    <script>
+        const quizData = [
+            {
+                question: "Indonesia memiliki lebih dari berapa suku bangsa?",
+                options: [
+                    { text: "A. 300 suku bangsa", isCorrect: false },
+                    { text: "B. 700 suku bangsa", isCorrect: false },
+                    { text: "C. 1.300 suku bangsa", isCorrect: true },
+                    { text: "D. 2.000 suku bangsa", isCorrect: false }
+                ],
+                explanation: "Indonesia memiliki lebih dari 1.300 suku bangsa yang tersebar dari Sabang sampai Merauke. Keberagaman suku bangsa menjadi salah satu kekayaan bangsa Indonesia."
+            },
+            {
+                question: "Semboyan 'Bhinneka Tunggal Ika' yang tertulis pada pita Garuda Pancasila memiliki arti...",
+                options: [
+                    { text: "A. Bersatu kita teguh bercerai kita runtuh", isCorrect: false },
+                    { text: "B. Berbeda-beda tetapi tetap satu jua", isCorrect: true },
+                    { text: "C. Satu nusa satu bangsa satu bahasa", isCorrect: false },
+                    { text: "D. Dari rakyat oleh rakyat untuk rakyat", isCorrect: false }
+                ],
+                explanation: "Bhinneka Tunggal Ika mengajarkan bahwa walaupun masyarakat Indonesia memiliki banyak perbedaan suku, agama, dan budaya, tetap harus hidup rukun dan bersatu."
+            },
+            {
+                question: "Tari Saman adalah tarian tradisional yang berasal dari daerah...",
+                options: [
+                    { text: "A. Bali", isCorrect: false },
+                    { text: "B. Jawa Tengah", isCorrect: false },
+                    { text: "C. Aceh", isCorrect: true },
+                    { text: "D. Sulawesi Selatan", isCorrect: false }
+                ],
+                explanation: "Tari Saman berasal dari Aceh dan terkenal karena gerakannya yang kompak serta dilakukan secara berkelompok."
+            },
+            {
+                question: "Pasal dalam UUD 1945 yang menjamin kebebasan beragama di Indonesia adalah...",
+                options: [
+                    { text: "A. Pasal 27 Ayat 1", isCorrect: false },
+                    { text: "B. Pasal 28 Ayat 1", isCorrect: false },
+                    { text: "C. Pasal 29 Ayat 2", isCorrect: true },
+                    { text: "D. Pasal 30 Ayat 1", isCorrect: false }
+                ],
+                explanation: "Pasal 29 Ayat 2 UUD 1945 menjamin setiap warga negara Indonesia untuk memeluk agama dan beribadah sesuai keyakinannya masing-masing."
+            },
+            {
+                question: "Sikap yang tepat ketika teman kita merayakan hari besar agamanya yang berbeda adalah...",
+                options: [
+                    { text: "A. Pura-pura tidak tahu", isCorrect: false },
+                    { text: "B. Mengucapkan selamat dan menghormati perayaannya", isCorrect: true },
+                    { text: "C. Mengajak teman lain untuk tidak berteman dengannya", isCorrect: false },
+                    { text: "D. Ikut-ikutan merayakan meskipun berbeda agama", isCorrect: false }
+                ],
+                explanation: "Menghormati perayaan agama orang lain merupakan salah satu bentuk toleransi dalam kehidupan bermasyarakat."
+            },
+            {
+                question: "Berikut ini yang merupakan contoh rumah adat dari Sulawesi Selatan adalah...",
+                options: [
+                    { text: "A. Rumah Gadang", isCorrect: false },
+                    { text: "B. Joglo", isCorrect: false },
+                    { text: "C. Rumah Tongkonan", isCorrect: true },
+                    { text: "D. Honai", isCorrect: false }
+                ],
+                explanation: "Rumah Tongkonan merupakan rumah adat masyarakat Toraja yang berada di Sulawesi Selatan."
+            },
+            {
+                question: "Gotong royong adalah salah satu contoh sikap menghargai keberagaman karena...",
+                options: [
+                    { text: "A. Dilakukan oleh satu suku saja", isCorrect: false },
+                    { text: "B. Hanya dilakukan pada hari libur nasional", isCorrect: false },
+                    { text: "C. Melibatkan kerja sama semua warga tanpa memandang perbedaan", isCorrect: true },
+                    { text: "D. Merupakan tradisi dari Pulau Jawa", isCorrect: false }
+                ],
+                explanation: "Gotong royong mencerminkan semangat kebersamaan dan persatuan tanpa membedakan suku, agama, maupun budaya."
+            },
+            {
+                question: "Makanan khas Rendang berasal dari daerah...",
+                options: [
+                    { text: "A. Jawa Tengah", isCorrect: false },
+                    { text: "B. Sumatera Barat", isCorrect: true },
+                    { text: "C. Sulawesi Selatan", isCorrect: false },
+                    { text: "D. Kalimantan Timur", isCorrect: false }
+                ],
+                explanation: "Rendang adalah makanan khas Minangkabau yang berasal dari Sumatera Barat dan dikenal hingga mancanegara."
+            },
+            {
+                question: "Agama Buddha memiliki kitab suci yang disebut...",
+                options: [
+                    { text: "A. Al-Quran", isCorrect: false },
+                    { text: "B. Weda", isCorrect: false },
+                    { text: "C. Tripitaka", isCorrect: true },
+                    { text: "D. Alkitab", isCorrect: false }
+                ],
+                explanation: "Tripitaka merupakan kitab suci umat Buddha yang berisi ajaran-ajaran Sang Buddha."
+            },
+            {
+                question: "Berikut ini yang merupakan contoh pakaian adat dari Sulawesi Selatan adalah...",
+                options: [
+                    { text: "A. Kebaya", isCorrect: false },
+                    { text: "B. Baju Bodo", isCorrect: true },
+                    { text: "C. Ulos", isCorrect: false },
+                    { text: "D. Baju Kurung", isCorrect: false }
+                ],
+                explanation: "Baju Bodo merupakan pakaian adat khas Sulawesi Selatan yang digunakan oleh masyarakat Bugis dan Makassar."
+            },
+            {
+                question: "Suku Dayak berasal dari pulau...",
+                options: [
+                    { text: "A. Sumatera", isCorrect: false },
+                    { text: "B. Jawa", isCorrect: false },
+                    { text: "C. Kalimantan", isCorrect: true },
+                    { text: "D. Sulawesi", isCorrect: false }
+                ],
+                explanation: "Suku Dayak merupakan salah satu suku asli yang mendiami wilayah Kalimantan."
+            },
+            {
+                question: "Tari Kecak merupakan tarian tradisional yang berasal dari...",
+                options: [
+                    { text: "A. Jawa Barat", isCorrect: false },
+                    { text: "B. Aceh", isCorrect: false },
+                    { text: "C. Bali", isCorrect: true },
+                    { text: "D. Maluku", isCorrect: false }
+                ],
+                explanation: "Tari Kecak berasal dari Bali dan terkenal dengan iringan suara 'cak' yang dilakukan secara berulang oleh para penarinya."
+            },
+            {
+                question: "Lagu daerah 'Ampar-Ampar Pisang' berasal dari...",
+                options: [
+                    { text: "A. Sulawesi", isCorrect: false },
+                    { text: "B. Kalimantan", isCorrect: true },
+                    { text: "C. Papua", isCorrect: false },
+                    { text: "D. Sumatera", isCorrect: false }
+                ],
+                explanation: "Ampar-Ampar Pisang adalah lagu daerah yang berasal dari Kalimantan Selatan."
+            },
+            {
+                question: "Makanan khas Papeda berasal dari daerah...",
+                options: [
+                    { text: "A. Jawa Tengah", isCorrect: false },
+                    { text: "B. Kalimantan", isCorrect: false },
+                    { text: "C. Bali", isCorrect: false },
+                    { text: "D. Maluku dan Papua", isCorrect: true }
+                ],
+                explanation: "Papeda merupakan makanan khas berbahan dasar sagu yang banyak dikonsumsi masyarakat Maluku dan Papua."
+            },
+            {
+                question: "Sikap yang TIDAK mencerminkan penghargaan terhadap keberagaman adalah...",
+                options: [
+                    { text: "A. Berteman dengan semua suku", isCorrect: false },
+                    { text: "B. Menghormati teman yang berbeda agama", isCorrect: false },
+                    { text: "C. Mengejek bahasa daerah orang lain", isCorrect: true },
+                    { text: "D. Ikut gotong royong bersama warga", isCorrect: false }
+                ],
+                explanation: "Mengejek bahasa daerah orang lain menunjukkan sikap tidak menghargai perbedaan dan dapat menimbulkan perpecahan."
+            },
+            {
+                question: "Jumlah agama yang diakui secara resmi oleh pemerintah Indonesia adalah...",
+                options: [
+                    { text: "A. 3 agama", isCorrect: false },
+                    { text: "B. 4 agama", isCorrect: false },
+                    { text: "C. 5 agama", isCorrect: false },
+                    { text: "D. 6 agama", isCorrect: true }
+                ],
+                explanation: "Indonesia mengakui enam agama, yaitu Islam, Kristen Protestan, Katolik, Hindu, Buddha, dan Konghucu."
+            },
+            {
+                question: "Upacara Ngaben merupakan upacara adat yang berasal dari daerah...",
+                options: [
+                    { text: "A. Jawa", isCorrect: false },
+                    { text: "B. Bali", isCorrect: true },
+                    { text: "C. Toraja", isCorrect: false },
+                    { text: "D. Aceh", isCorrect: false }
+                ],
+                explanation: "Ngaben adalah upacara pembakaran jenazah dalam tradisi masyarakat Hindu Bali."
+            },
+            {
+                question: "Rumah adat Honai berasal dari daerah...",
+                options: [
+                    { text: "A. Kalimantan", isCorrect: false },
+                    { text: "B. Sulawesi", isCorrect: false },
+                    { text: "C. Papua", isCorrect: true },
+                    { text: "D. Maluku", isCorrect: false }
+                ],
+                explanation: "Honai merupakan rumah adat tradisional masyarakat Papua yang berbentuk bulat dengan atap jerami."
+            },
+            {
+                question: "Bahasa Indonesia digunakan sebagai bahasa persatuan karena...",
+                options: [
+                    { text: "A. Bahasa yang paling mudah dipelajari", isCorrect: false },
+                    { text: "B. Bahasa yang digunakan sejak zaman kerajaan", isCorrect: false },
+                    { text: "C. Bahasa pemersatu yang menghubungkan seluruh suku bangsa di Indonesia", isCorrect: true },
+                    { text: "D. Bahasa yang berasal dari Pulau Jawa", isCorrect: false }
+                ],
+                explanation: "Bahasa Indonesia digunakan sebagai alat komunikasi nasional yang menyatukan masyarakat dari berbagai suku bangsa."
+            },
+            {
+                question: "Nilai yang terkandung dalam semboyan Bhinneka Tunggal Ika adalah...",
+                options: [
+                    { text: "A. Persaingan antar suku untuk menjadi yang terbaik", isCorrect: false },
+                    { text: "B. Persatuan dalam keberagaman", isCorrect: true },
+                    { text: "C. Kesamaan budaya di seluruh Indonesia", isCorrect: false },
+                    { text: "D. Penghapusan perbedaan antar daerah", isCorrect: false }
+                ],
+                explanation: "Semboyan Bhinneka Tunggal Ika mengajarkan bahwa perbedaan harus menjadi kekuatan untuk menjaga persatuan bangsa Indonesia."
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let correctAnswersCount = 0;
+
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const progressBarContainer = document.getElementById('progress-bar-container');
+        const progressFill = document.getElementById('progress-fill');
+        const questionNumberElem = document.getElementById('question-number');
+        const questionTextElem = document.getElementById('question-text');
+        const optionsContainerElem = document.getElementById('options-container');
+        const feedbackPanel = document.getElementById('feedback-panel');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackText = document.getElementById('feedback-text');
+        const nextBtn = document.getElementById('next-btn');
+        
+        const audioCorrect = document.getElementById('audio-correct');
+        const audioWrong = document.getElementById('audio-wrong');
+
+        function loadQuestion() {
+            feedbackPanel.style.display = 'none';
+            nextBtn.style.display = 'none';
+            optionsContainerElem.innerHTML = '';
+
+            const progressPercent = (currentQuestionIndex / quizData.length) * 100;
+            progressFill.style.width = `${progressPercent}%`;
+
+            const currentQuestion = quizData[currentQuestionIndex];
+            questionNumberElem.innerText = `Soal ${currentQuestionIndex + 1} dari ${quizData.length}`;
+            questionTextElem.innerText = currentQuestion.question;
+
+            currentQuestion.options.forEach((option) => {
+                const button = document.createElement('button');
+                button.innerText = option.text;
+                button.classList.add('option-btn');
+                button.addEventListener('click', () => selectAnswer(button, option.isCorrect));
+                optionsContainerElem.appendChild(button);
+            });
+        }
+
+        function selectAnswer(selectedButton, isCorrect) {
+            const currentQuestion = quizData[currentQuestionIndex];
+            const allButtons = optionsContainerElem.querySelectorAll('.option-btn');
+
+            allButtons.forEach(button => button.disabled = true);
+
+            if (isCorrect) {
+                selectedButton.classList.add('correct');
+                feedbackTitle.innerText = "Benar! 🎉";
+                feedbackTitle.className = "feedback-title correct-text";
+                feedbackPanel.className = "feedback-panel correct-style";
+                correctAnswersCount++;
+                
+                audioCorrect.currentTime = 0;
+                audioCorrect.play().catch(e => console.log("Audio diblokir browser"));
+            } else {
+                selectedButton.classList.add('wrong');
+                feedbackTitle.innerText = "Salah! ❌";
+                feedbackTitle.className = "feedback-title wrong-text";
+                feedbackPanel.className = "feedback-panel wrong-style";
+
+                allButtons.forEach((button, index) => {
+                    if (currentQuestion.options[index].isCorrect) {
+                        button.classList.add('correct');
+                    }
+                });
+
+                audioWrong.currentTime = 0;
+                audioWrong.play().catch(e => console.log("Audio diblokir browser"));
+            }
+
+            feedbackText.innerText = currentQuestion.explanation;
+            feedbackPanel.style.display = 'block';
+
+            if (currentQuestionIndex === quizData.length - 1) {
+                nextBtn.innerText = "Lihat Hasil Akhir";
+            } else {
+                nextBtn.innerText = "Soal Berikutnya";
+            }
+            
+            nextBtn.style.display = 'block';
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            progressFill.style.width = '100%';
+            quizScreen.style.display = 'none';
+            progressBarContainer.style.display = 'none';
+            resultScreen.style.display = 'block';
+
+            // Rumus Dinamis: (Total Benar / Total Soal) * 100
+            const finalScore = Math.round((correctAnswersCount / quizData.length) * 100);
+            
+            document.getElementById('score-display').innerText = finalScore;
+            document.getElementById('result-summary').innerText = `Kamu berhasil menjawab ${correctAnswersCount} dari ${quizData.length} soal dengan benar.`;
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            correctAnswersCount = 0;
+            quizScreen.style.display = 'block';
+            progressBarContainer.style.display = 'block';
+            resultScreen.style.display = 'none';
+            loadQuestion();
+        }
+
+        window.onload = loadQuestion;
+    </script>
+</body>
+</html>
